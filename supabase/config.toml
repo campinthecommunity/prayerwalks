@@ -1,0 +1,16 @@
+# Disables the Edge Functions gateway's default JWT-verification for these
+# three functions. Without this, Supabase's gateway tries to verify the
+# Authorization header as a user JWT before your function code ever runs --
+# which doesn't apply here, since every visitor calls these functions with
+# the public API key, not a logged-in user's token (this site has no login).
+# Each function still checks what it needs to check on its own (admin-action
+# re-checks the admin passphrase; moderate/prayer-guide don't need any check).
+
+[functions.moderate]
+verify_jwt = false
+
+[functions.prayer-guide]
+verify_jwt = false
+
+[functions.admin-action]
+verify_jwt = false
