@@ -852,7 +852,7 @@
             <button onclick="zoomReset()" title="Reset view" style="font-size:0.85rem;">⟲</button>
           </div>
         </div>
-        <div class="map-hint" id="mapHint">👆 Click or tap within the highlighted region to mark a prayer walk. Scroll or pinch to zoom.</div>
+        <div class="map-hint" id="mapHint">👆 Click or tap within the highlighted region to mark a prayer walk. Use the +/- buttons to zoom.</div>
         <div class="map-error-flash" id="mapErrorFlash">Please choose a spot within the highlighted region</div>
         <svg id="regionMap" viewBox="0 0 1000 900" preserveAspectRatio="xMidYMid meet">
           <g id="countyLayer"></g>
@@ -1327,11 +1327,7 @@
     function wireMapInteractions() {
       const svg = document.getElementById('regionMap');
 
-      svg.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        const factor = e.deltaY > 0 ? 1.15 : 1 / 1.15;
-        zoomAt(factor, e.clientX, e.clientY);
-      }, { passive: false });
+      // Zooming is buttons-only (see zoomBtn/zoomReset) -- no wheel/scroll zoom.
 
       svg.addEventListener('pointerdown', (e) => {
         try { svg.setPointerCapture(e.pointerId); } catch (err) { /* not fatal -- keep going */ }
@@ -1348,19 +1344,10 @@
         const ids = dragState.pointers ? Object.keys(dragState.pointers) : [];
 
         if (ids.length >= 2) {
+          // Two-finger touch is intentionally ignored -- zooming only happens
+          // via the +/- buttons, so a second finger just does nothing here
+          // (and won't be treated as a tap/click when fingers lift).
           dragState.wasMultiTouch = true;
-          // pinch zoom -- heavily damped and clamped per-frame so it feels gradual
-          // instead of jumpy (raw finger-distance ratios are noisy frame to frame).
-          const pts = ids.slice(0, 2).map(id => dragState.pointers[id]);
-          const dist = Math.max(Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y), 1);
-          if (dragState.pinchDist) {
-            const rawFactor = dragState.pinchDist / dist;
-            let factor = Math.pow(rawFactor, 0.22);
-            factor = Math.min(Math.max(factor, 0.99), 1.01);
-            const midX = (pts[0].x + pts[1].x) / 2, midY = (pts[0].y + pts[1].y) / 2;
-            zoomAt(factor, midX, midY);
-          }
-          dragState.pinchDist = dist;
           return;
         }
 
